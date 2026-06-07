@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { ChatPanel } from "@/components/ChatPanel";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Badge } from "@/components/ui/Badge";
@@ -7,7 +9,14 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { formatRelativeUpdate } from "@/lib/format";
 
 export default function Dashboard() {
+  const router = useRouter();
   const { data, error, loading, lastFetchedAt, refresh } = useDashboard();
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.replace("/login");
+    router.refresh();
+  }
 
   const connectionError = error && !data;
   const isConnected = !connectionError && (!loading || !!data);
@@ -28,6 +37,13 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3 text-xs text-friday-muted">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-lg border border-friday-border px-2.5 py-1 text-friday-muted transition hover:border-friday-border hover:bg-friday-elevated hover:text-friday-text"
+          >
+            登出
+          </button>
           <Badge variant={isConnected ? "success" : "muted"}>
             {connectionError
               ? "離線"
