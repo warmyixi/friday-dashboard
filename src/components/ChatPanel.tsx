@@ -5,18 +5,14 @@ import type { FormEvent } from "react";
 
 import { QuickActions } from "@/components/QuickActions";
 import { ThinkingIndicator } from "@/components/ThinkingIndicator";
+import type { QuickAction } from "@/lib/quickActions";
 import type { ChatMessage, CommandResponse } from "@/lib/types";
 import { formatRelativeUpdate } from "@/lib/format";
 
 type ChatPanelProps = {
+  quickActions: QuickAction[];
   onCommandComplete?: () => void;
 };
-
-const SUGGESTIONS = [
-  "幫我開主臥燈",
-  "我有哪些待辦事項",
-  "今天晚上十點提醒我吃肌酸",
-];
 
 function createMessage(
   role: ChatMessage["role"],
@@ -49,7 +45,7 @@ function SendIcon() {
   );
 }
 
-export function ChatPanel({ onCommandComplete }: ChatPanelProps) {
+export function ChatPanel({ quickActions, onCommandComplete }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -121,31 +117,33 @@ export function ChatPanel({ onCommandComplete }: ChatPanelProps) {
     void submitMessage();
   }
 
+  const starterPrompts = quickActions.slice(0, 3);
+
   return (
-    <section className="flex h-full min-h-0 flex-col bg-friday-bg">
+    <section className="flex h-full min-h-0 flex-col">
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <div className="mx-auto max-w-3xl px-4 py-6 lg:px-6">
           {messages.length === 0 ? (
-            <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-friday-accent/15 text-2xl font-bold text-friday-accent">
+            <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-friday-accent to-emerald-600 text-2xl font-bold text-white shadow-card">
                 F
               </div>
-              <h2 className="text-xl font-semibold text-friday-text">
+              <h2 className="text-2xl font-semibold text-friday-text">
                 Friday
               </h2>
-              <p className="mt-2 max-w-sm text-sm text-friday-muted">
-                你的智慧家庭助理。輸入指令控制家電、管理待辦，或隨意聊聊。
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-friday-muted">
+                控制智慧家庭、回報現場測站、查詢專案進度，或直接用下方快捷指令。
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {SUGGESTIONS.map((suggestion) => (
+                {starterPrompts.map((suggestion) => (
                   <button
-                    key={suggestion}
+                    key={suggestion.id}
                     type="button"
-                    onClick={() => void submitMessage(suggestion)}
+                    onClick={() => void submitMessage(suggestion.message)}
                     disabled={sending}
-                    className="rounded-full border border-friday-border bg-friday-panel px-3 py-1.5 text-xs text-friday-muted transition hover:border-friday-border hover:bg-friday-elevated hover:text-friday-text disabled:opacity-50"
+                    className="rounded-full border border-friday-border bg-white px-3 py-1.5 text-xs text-friday-muted shadow-sm transition hover:border-friday-accent/40 hover:text-friday-text disabled:opacity-50"
                   >
-                    {suggestion}
+                    {suggestion.icon} {suggestion.label}
                   </button>
                 ))}
               </div>
@@ -162,8 +160,8 @@ export function ChatPanel({ onCommandComplete }: ChatPanelProps) {
                   <div
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                       message.role === "user"
-                        ? "bg-friday-elevated text-friday-text"
-                        : "bg-friday-accent/15 text-friday-accent"
+                        ? "bg-slate-900 text-white"
+                        : "bg-friday-accent-soft text-friday-accent"
                     }`}
                   >
                     {message.role === "user" ? "你" : "F"}
@@ -176,8 +174,8 @@ export function ChatPanel({ onCommandComplete }: ChatPanelProps) {
                     <div
                       className={`inline-block rounded-2xl px-4 py-2.5 text-left text-sm leading-relaxed whitespace-pre-wrap ${
                         message.role === "user"
-                          ? "bg-friday-elevated text-friday-text shadow-sm"
-                          : "text-friday-text"
+                          ? "bg-slate-900 text-white shadow-card"
+                          : "bg-white text-friday-text shadow-card"
                       }`}
                     >
                       {message.content}
@@ -205,8 +203,9 @@ export function ChatPanel({ onCommandComplete }: ChatPanelProps) {
         </div>
       ) : null}
 
-      <div className="shrink-0 border-t border-friday-border-subtle bg-friday-bg px-4 pt-3 pb-4">
+      <div className="safe-bottom shrink-0 border-t border-friday-border-subtle bg-white/80 px-4 pt-3 pb-3 backdrop-blur-md">
         <QuickActions
+          actions={quickActions}
           disabled={sending}
           onAction={(message) => void submitMessage(message)}
         />
@@ -215,7 +214,7 @@ export function ChatPanel({ onCommandComplete }: ChatPanelProps) {
           onSubmit={handleSubmit}
           className="mx-auto mt-3 max-w-3xl lg:px-2"
         >
-          <div className="flex items-end gap-2 rounded-2xl border border-friday-border bg-friday-panel p-2 shadow-composer">
+          <div className="flex items-end gap-2 rounded-2xl border border-friday-border bg-white p-2 shadow-composer">
             <textarea
               ref={textareaRef}
               value={input}

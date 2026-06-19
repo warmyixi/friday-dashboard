@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { DashboardFetchState, DashboardSnapshot } from "@/lib/types";
 
-const POLL_INTERVAL_MS = 5000;
+const POLL_INTERVAL_MS =
+  Number(process.env.NEXT_PUBLIC_DASHBOARD_POLL_MS) || 15_000;
 
 const initialState: DashboardFetchState = {
   data: null,

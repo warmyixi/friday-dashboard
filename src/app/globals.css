@@ -4,20 +4,27 @@
 
 :root {
   color-scheme: light;
-  --friday-bg: #f7f7f8;
-  --friday-surface: #ffffff;
+  --friday-bg: #eef2f6;
+  --friday-bg-accent: #e8f5ef;
+  --friday-surface: rgba(255, 255, 255, 0.88);
   --friday-panel: #ffffff;
-  --friday-elevated: #f3f4f6;
-  --friday-border: #e3e3e8;
-  --friday-border-subtle: #ececf1;
+  --friday-elevated: #f8fafc;
+  --friday-border: rgba(15, 23, 42, 0.08);
+  --friday-border-subtle: rgba(15, 23, 42, 0.05);
   --friday-text: #0f172a;
   --friday-muted: #64748b;
   --friday-accent: #059669;
   --friday-accent-hover: #047857;
+  --friday-accent-soft: rgba(5, 150, 105, 0.12);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 body {
   @apply bg-friday-bg text-friday-text antialiased;
+  min-height: 100dvh;
 }
 
 * {
@@ -42,6 +49,27 @@ body {
 
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  .safe-top {
+    padding-top: var(--safe-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .glass-panel {
+    background: var(--friday-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .hero-gradient {
+    background:
+      radial-gradient(circle at top right, rgba(5, 150, 105, 0.16), transparent 42%),
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 36%),
+      linear-gradient(180deg, #f8fafc 0%, var(--friday-bg) 100%);
   }
 }
 

@@ -5,6 +5,7 @@ type SectionCardProps = {
   icon?: string;
   count?: number;
   error?: string | null;
+  className?: string;
   children: ReactNode;
 };
 
@@ -13,10 +14,13 @@ export function SectionCard({
   icon,
   count,
   error,
+  className = "",
   children,
 }: SectionCardProps) {
   return (
-    <section className="rounded-2xl border border-friday-border-subtle bg-friday-panel shadow-card">
+    <section
+      className={`rounded-2xl border border-friday-border-subtle bg-friday-panel shadow-card ${className}`}
+    >
       <div className="flex items-center justify-between gap-2 border-b border-friday-border-subtle px-4 py-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-friday-text">
           {icon ? <span aria-hidden>{icon}</span> : null}
