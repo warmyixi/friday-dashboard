@@ -90,11 +90,12 @@ export default function Dashboard() {
             />
           ) : null}
           {activeTab === "home" ? (
-            <HomeView data={data} loading={loading} />
+            <HomeView data={data} loading={loading} onRefresh={refresh} />
           ) : null}
           {activeTab === "projects" ? (
             <ProjectView
               projects={data?.projects ?? []}
+              tasks={data?.tasks ?? []}
               loading={loading}
               onAssetUpdated={refresh}
               onProjectsChanged={refresh}

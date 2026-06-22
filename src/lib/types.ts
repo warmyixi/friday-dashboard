@@ -8,6 +8,22 @@ export type TodoItem = {
   created_at: string | null;
 };
 
+export type TaskItem = {
+  id: number;
+  title: string;
+  task_type: string;
+  task_type_label: string;
+  status: string;
+  status_label: string;
+  project_id: number | null;
+  project_name: string | null;
+  asset_id: number | null;
+  asset_code: string | null;
+  due_at: string | null;
+  remind_at: string | null;
+  tags: string[];
+};
+
 export type ScheduleItem = {
   id: number;
   job_type: string;
@@ -70,6 +86,7 @@ export type DashboardErrors = {
   todos: string | null;
   schedules: string | null;
   calendar: string | null;
+  tasks: string | null;
   home_state?: string | null;
   projects?: string | null;
 };
@@ -212,6 +229,9 @@ export type ProjectSnapshot = {
   maintenance_plans?: MaintenancePlan[];
   billing_defaults?: ProjectBillingDefaults;
   fixed?: boolean;
+  adhoc_subtype?: string | null;
+  adhoc_status?: string | null;
+  summary?: string | null;
   active_round?: MaintenanceRound | null;
   viewing_round?: MaintenanceRound | null;
   viewing_round_id?: number | null;
@@ -226,6 +246,7 @@ export type ProjectSnapshot = {
 export type DashboardSnapshot = {
   user_id: string;
   todos: TodoItem[];
+  tasks: TaskItem[];
   schedules: ScheduleItem[];
   calendar: CalendarItem[];
   calendar_days_ahead: number;

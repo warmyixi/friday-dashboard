@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { AdHocProjectCard, AdHocProjectDetail } from "@/components/projects/AdHocProjectDetail";
 import { FieldAssetManager } from "@/components/projects/FieldAssetManager";
 import { FieldRoundPanel } from "@/components/projects/FieldRoundPanel";
 import { WaterStationActions } from "@/components/projects/WaterStationActions";
 import { SectionCard } from "@/components/SectionCard";
+import { TaskList } from "@/components/TaskList";
 import { Badge } from "@/components/ui/Badge";
 import {
   ASSET_STATUS_LABELS,
@@ -14,10 +16,11 @@ import {
   PROJECT_SUB_TABS,
   type ProjectSubTab,
 } from "@/lib/navigation";
-import type { ProjectAsset, ProjectSnapshot, ProjectWorkLog } from "@/lib/types";
+import type { ProjectAsset, ProjectSnapshot, ProjectWorkLog, TaskItem } from "@/lib/types";
 
 type ProjectViewProps = {
   projects: ProjectSnapshot[];
+  tasks?: TaskItem[];
   loading: boolean;
   onAssetUpdated: () => void;
   onProjectsChanged?: () => void;
@@ -386,16 +389,21 @@ function AssetEditor({
 
 function ProjectDetail({
   project,
+  projectTasks,
   onBack,
   onAssetUpdated,
+  onTasksChanged,
   focusAssetId,
 }: {
   project: ProjectSnapshot;
+  projectTasks: TaskItem[];
   onBack: () => void;
   onAssetUpdated: () => void;
+  onTasksChanged?: () => void;
   focusAssetId?: number | null;
 }) {
   const isWaterStation = project.project_type === "water_station";
+  const isAdHoc = project.project_type === "ad_hoc";
   const isFieldFixed = isFixedFieldProject(project);
   const [subTab, setSubTab] = useState<ProjectSubTab>("overview");
   const [expandedAssetId, setExpandedAssetId] = useState<number | null>(null);
@@ -429,6 +437,30 @@ function ProjectDetail({
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [focusAssetId, project.assets]);
+
+  if (isAdHoc) {
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-friday-accent hover:underline"
+        >
+          ← 返回專案列表
+        </button>
+
+        <div className="rounded-3xl bg-gradient-to-br from-violet-700 to-purple-600 p-5 text-white shadow-card">
+          <p className="text-sm text-white/70">{project.template_label ?? "進行中事件"}</p>
+          <h2 className="mt-1 text-2xl font-semibold">{project.name}</h2>
+          {project.description ? (
+            <p className="mt-2 text-sm text-white/85">{project.description}</p>
+          ) : null}
+        </div>
+
+        <AdHocProjectDetail project={project} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -473,6 +505,13 @@ function ProjectDetail({
 
       {subTab === "overview" ? (
         <div className="space-y-4">
+          <SectionCard title="專案任務" icon="📋" count={projectTasks.length}>
+            <TaskList
+              items={projectTasks}
+              onChanged={onTasksChanged ?? onAssetUpdated}
+            />
+          </SectionCard>
+
           {!isWaterStation ? (
             <>
               {isFieldFixed ? (
@@ -660,14 +699,25 @@ function ProjectDetail({
 
 export function ProjectView({
   projects,
+  tasks = [],
   loading,
   onAssetUpdated,
+  onProjectsChanged,
 }: ProjectViewProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [focusAssetId, setFocusAssetId] = useState<number | null>(null);
 
   const selectedProject =
     projects.find((project) => project.id === selectedId) ?? null;
+
+  const adhocProjects = useMemo(
+    () => projects.filter((project) => project.project_type === "ad_hoc"),
+    [projects],
+  );
+  const fixedProjects = useMemo(
+    () => projects.filter((project) => project.project_type !== "ad_hoc"),
+    [projects],
+  );
 
   if (loading && projects.length === 0) {
     return (
@@ -683,19 +733,23 @@ export function ProjectView({
         {selectedProject ? (
           <ProjectDetail
             project={selectedProject}
+            projectTasks={tasks.filter(
+              (task) => task.project_id === selectedProject.id,
+            )}
             onBack={() => {
               setSelectedId(null);
               setFocusAssetId(null);
             }}
             onAssetUpdated={onAssetUpdated}
+            onTasksChanged={onProjectsChanged ?? onAssetUpdated}
             focusAssetId={focusAssetId}
           />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <h2 className="text-xl font-semibold">專案</h2>
               <p className="mt-1 text-sm text-friday-muted">
-                加水站與仁大工業區固定專案，點選站點進入。
+                固定專案與進行中事件；新增或更新請透過 Discord 或對話。
               </p>
             </div>
 
@@ -707,8 +761,33 @@ export function ProjectView({
                 </p>
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {projects.flatMap((project) => {
+              <>
+                {adhocProjects.length > 0 ? (
+                  <section className="space-y-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-friday-text">進行中事件</h3>
+                      <p className="text-xs text-friday-muted">透過對話建立與更新，此處僅顯示現況。</p>
+                    </div>
+                    <div className="grid gap-3">
+                      {adhocProjects.map((project) => (
+                        <AdHocProjectCard
+                          key={project.id}
+                          project={project}
+                          onSelect={() => setSelectedId(project.id)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                {fixedProjects.length > 0 ? (
+                  <section className="space-y-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-friday-text">固定專案</h3>
+                      <p className="text-xs text-friday-muted">加水站與仁大工業區，點選站點進入。</p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {fixedProjects.flatMap((project) => {
                   if (project.project_type === "water_station") {
                     return project.assets.map((asset) => {
                       const nextAt = asset.maintenance_schedule?.next_service_at;
@@ -779,7 +858,10 @@ export function ProjectView({
                     </button>,
                   ];
                 })}
-              </div>
+                    </div>
+                  </section>
+                ) : null}
+              </>
             )}
           </div>
         )}

@@ -5,6 +5,7 @@ import { HaStatusCard } from "@/components/HaStatusCard";
 import { PresenceBadge } from "@/components/PresenceBadge";
 import { ScheduleList } from "@/components/ScheduleList";
 import { SectionCard } from "@/components/SectionCard";
+import { TaskList } from "@/components/TaskList";
 import { TodoList } from "@/components/TodoList";
 import { Spinner } from "@/components/ui/Spinner";
 import type { DashboardSnapshot } from "@/lib/types";
@@ -12,9 +13,10 @@ import type { DashboardSnapshot } from "@/lib/types";
 type DashboardSidebarProps = {
   data: DashboardSnapshot | null;
   loading: boolean;
+  onRefresh?: () => void;
 };
 
-export function DashboardSidebar({ data, loading }: DashboardSidebarProps) {
+export function DashboardSidebar({ data, loading, onRefresh }: DashboardSidebarProps) {
   if (loading && !data) {
     return (
       <aside className="flex h-full flex-col items-center justify-center gap-3 p-8 text-friday-muted">
@@ -28,12 +30,21 @@ export function DashboardSidebar({ data, loading }: DashboardSidebarProps) {
     <aside className="scrollbar-thin h-full overflow-y-auto p-4 lg:p-5">
       <div className="space-y-4">
         <SectionCard
+          title="統一任務"
+          icon="📋"
+          count={data?.tasks?.length}
+          error={data?.errors.tasks}
+        >
+          <TaskList items={data?.tasks ?? []} onChanged={onRefresh} />
+        </SectionCard>
+
+        <SectionCard
           title="待辦事項"
           icon="📝"
           count={data?.todos.length}
           error={data?.errors.todos}
         >
-          <TodoList items={data?.todos ?? []} />
+          <TodoList items={data?.todos ?? []} onChanged={onRefresh} />
         </SectionCard>
 
         <SectionCard
@@ -42,7 +53,7 @@ export function DashboardSidebar({ data, loading }: DashboardSidebarProps) {
           count={data?.schedules.length}
           error={data?.errors.schedules}
         >
-          <ScheduleList items={data?.schedules ?? []} />
+          <ScheduleList items={data?.schedules ?? []} onChanged={onRefresh} />
         </SectionCard>
 
         <SectionCard
@@ -54,6 +65,7 @@ export function DashboardSidebar({ data, loading }: DashboardSidebarProps) {
           <CalendarList
             items={data?.calendar ?? []}
             daysAhead={data?.calendar_days_ahead ?? 14}
+            onChanged={onRefresh}
           />
         </SectionCard>
 
